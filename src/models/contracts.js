@@ -1,7 +1,7 @@
 const connection = require("../database/connection");
 const { STRING, DATE, INTEGER } = require("sequelize");
 const Contract = connection.define(
-  "Contracts",
+  "contracts",
   {
     trainee_id: INTEGER,
     category_id: INTEGER,
