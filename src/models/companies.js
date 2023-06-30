@@ -12,7 +12,7 @@ const Companies = connection.define(
     city: STRING,
     state: STRING,
     number: STRING,
-    complement: STRING,
+    complement: { type: STRING, allowNull: true },
     rh_analyst_name: STRING,
     supervisor_name: STRING,
     created_at: DATE,

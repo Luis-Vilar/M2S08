@@ -7,15 +7,48 @@ Ao listar os contratos no método index e show, utilizar o parâmetro include pa
 
 module.exports = {
   async index(req, res) {
-    const contracts = await Contract.findAll();
+    const contracts = await Contract.findAll({
+      include: [
+        {
+          association: "trainee",
+          attributes: ["name", "email", "cpf", "rg"],
+        },
+        {
+          association: "category",
+          attributes: ["name"],
+        },
+        {
+          association: "company",
+          attributes: ["company_name", "cnpj", "contact"],
+        },
+      ],
+    });
     res.json(contracts);
   },
 
   async show(req, res) {
     const { id } = req.params;
-    const contract = await Contract.findByPk(id);
+    const contract = await Contract.findOne({
+      where: {
+        id,
+      },
+      include: [
+        {
+          association: "trainee",
+          attributes: ["name", "email", "cpf", "rg"],
+        },
+        {
+          association: "category",
+          attributes: ["name"],
+        },
+        {
+          association: "company",
+          attributes: ["company_name", "cnpj", "contact"],
+        }],
+    });
     res.json(contract);
   },
+
   async store(req, res) {
     const {
       trainee_id,
@@ -34,7 +67,7 @@ module.exports = {
       company_id,
       start_validity,
       end_validity,
-      status : true,
+      status: true,
       remuneration,
       extra,
       created_at,
@@ -42,6 +75,7 @@ module.exports = {
     });
     res.json(contract);
   },
+
   async update(req, res) {
     const { id } = req.params;
     const {
@@ -75,6 +109,16 @@ module.exports = {
         },
       }
     );
+    res.json(contract);
+  },
+
+  async del(req, res) {
+    const { id } = req.params;
+    const contract = await Contract.destroy({
+      where: {
+        id,
+      },
+    });
     res.json(contract);
   },
 };

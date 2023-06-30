@@ -1,9 +1,18 @@
 const connection = require("../database/connection");
 const { STRING, DATE, INTEGER } = require("sequelize");
+const Trainee = require("./trainee.js");
+const Categorie = require("./category.js");
+const Company = require("./companies.js");
 const Contract = connection.define(
   "contracts",
   {
-    trainee_id: INTEGER,
+    trainee_id: {
+      type: INTEGER,
+      allowNull: false,
+      references: { model: "trainees", key: "id" },
+      onUpdate: "CASCADE",
+      onDelete: "CASCADE",
+    },
     category_id: INTEGER,
     company_id: INTEGER,
     start_validity: DATE,
@@ -16,8 +25,20 @@ const Contract = connection.define(
   },
   {
     underscored: true,
-    timestamps: false,
+    paranoid: true,
   }
 );
+Contract.belongsTo(Trainee, {
+  foreignKey: "trainee_id",
+  as: "trainee",
+});
+Contract.belongsTo(Categorie, {
+  foreignKey: "category_id",
+  as: "category",
+});
+Contract.belongsTo(Company, {
+  foreignKey: "company_id",
+  as: "company",
+});
 
 module.exports = Contract;
