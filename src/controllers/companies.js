@@ -1,7 +1,5 @@
 const Companies = require("../models/companies");
-/*
- *Não permitir cadastrar empresas com cnpj igual
- */
+
 async function validateCnpj(cnpj) {
   const company = await Companies.findOne({
     where: {
@@ -12,9 +10,6 @@ async function validateCnpj(cnpj) {
   return existe;
 }
 
-/*
- *Validar o corpo da requisição
- */
 function validateBody(body) {
   const {
     cnpj,

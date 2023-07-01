@@ -12,7 +12,7 @@ module.exports = {
     const category = await Category.create({
       name,
       created_at,
-      updated_at: new Date(Date.now()),
+      updated_at: Date.now(),
     });
 
     return res.json(category);

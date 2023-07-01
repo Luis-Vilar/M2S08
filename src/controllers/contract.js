@@ -1,13 +1,46 @@
+const { DATE } = require("sequelize");
 const Contract = require("../models/contracts");
 
-/**Todo contrato ao ser criado, nasce como status TRUE.
-Ao desativar um contrato, não é permitido ativar novamente .
-Validar o corpo da requisição.
-Ao listar os contratos no método index e show, utilizar o parâmetro include para exibir informações dos relacionamentos criados. */
+// Ao desativar um contrato, não é permitido ativar novamente FALTA.
+
+function validateBody(res, body) {
+  const {
+    trainee_id,
+    category_id,
+    company_id,
+    start_validity,
+    end_validity,
+    remuneration,
+    extra,
+  } = body;
+  if (
+    !trainee_id ||
+    !category_id ||
+    !company_id ||
+    !start_validity ||
+    !end_validity ||
+    !remuneration ||
+    !extra
+  ) {
+    return res
+      .status(400)
+      .json({ error: "Preencha todos os dados corretamente..." });
+  }
+}
 
 module.exports = {
   async index(req, res) {
     const contracts = await Contract.findAll({
+      attributes: [
+        "id",
+        "start_validity",
+        "end_validity",
+        "status",
+        "remuneration",
+        "extra",
+        "created_at",
+        "updated_at",
+      ],
       include: [
         {
           association: "trainee",
@@ -32,6 +65,16 @@ module.exports = {
       where: {
         id,
       },
+      attributes: [
+        "id",
+        "start_validity",
+        "end_validity",
+        "status",
+        "remuneration",
+        "extra",
+        "created_at",
+        "updated_at",
+      ],
       include: [
         {
           association: "trainee",
@@ -44,12 +87,14 @@ module.exports = {
         {
           association: "company",
           attributes: ["company_name", "cnpj", "contact"],
-        }],
+        },
+      ],
     });
     res.json(contract);
   },
 
   async store(req, res) {
+    validateBody(res, req.body);
     const {
       trainee_id,
       category_id,
@@ -58,8 +103,6 @@ module.exports = {
       end_validity,
       remuneration,
       extra,
-      created_at,
-      updated_at,
     } = req.body;
     const contract = await Contract.create({
       trainee_id,
@@ -70,8 +113,8 @@ module.exports = {
       status: true,
       remuneration,
       extra,
-      created_at,
-      updated_at,
+      created_at: Date.now(),
+      updated_at: Date.now(),
     });
     res.json(contract);
   },
@@ -90,6 +133,19 @@ module.exports = {
       created_at,
       updated_at,
     } = req.body;
+
+    const validateContractStatus = await Contract.findOne({
+      where: {
+        id,
+      },
+    });
+    if (validateContractStatus.status === false && status === true) {
+      return res
+        .status(400)
+        .json({
+          error: "Não é possível ativar novamente  um contrato desativado",
+        });
+    }
     const contract = await Contract.update(
       {
         trainee_id,
