@@ -31,7 +31,6 @@ const Trainee = connection.define(
         msg: "Este campo já está na aplicação",
       },
     },
-    cpf: { type: STRING, unique: true, validate: { len: [11, 11] } },
     primary_phone_contact: STRING,
     secondary_phone_contact: STRING,
     date_birth: DATE,

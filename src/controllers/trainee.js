@@ -1,8 +1,6 @@
 const Trainee = require("../models/trainee");
 
-/*
-Validar o corpo da requisição */
-function validateBody(body) {
+function validateBody(body, res) {
   const {
     name,
     email,
@@ -15,6 +13,8 @@ function validateBody(body) {
     mother_name,
     have_special_needs,
   } = body;
+
+
   if (
     !name ||
     !email ||
@@ -25,25 +25,30 @@ function validateBody(body) {
     !date_birth ||
     !father_name ||
     !mother_name ||
-    !have_special_needs
+    have_special_needs === null ||
+    have_special_needs === undefined
   ) {
-    return false;
+    return res
+      .status(400)
+      .json({ error: "Dados Preencha todos os dados corretamente..." });
   }
-  return true;
 }
 
-/***Não permitir cadastrar estagiários com cpf e RG igual */
-async function validateCpfAndRg(cpf, rg) {
-  const trainee = await Trainee.findOne({
+async function validateCpfAndRg(cpf, rg, res) {
+  const cpfExist = await Trainee.findOne({
     where: {
       cpf,
+    },
+  });
+  const rgExist = await Trainee.findOne({
+    where: {
       rg,
     },
   });
-  if (trainee) {
-    return false;
+
+  if (cpfExist || rgExist) {
+    return res.status(400).json({ error: "CPF ou RG já cadastrados" });
   }
-  return true;
 }
 
 module.exports = {
@@ -57,6 +62,8 @@ module.exports = {
     res.json(trainee);
   },
   async store(req, res) {
+    validateBody(req.body, res);
+
     const {
       name,
       email,
@@ -69,20 +76,11 @@ module.exports = {
       mother_name,
       have_special_needs,
     } = req.body;
-    if (!validateBody(req.body)) {
-      res.status(400).json({ error: "Preencha todos os campos" });
-      return;
-    }
-    if (!(await validateCpfAndRg(cpf, rg))) {
-      res.status(400).json({ error: "CPF e RG já cadastrados" });
-      return;
-    }
-
-
-    var trainee = null;
 
     try {
-      trainee = await Trainee.create({
+      await validateCpfAndRg(cpf, rg, res);
+
+      const trainee = await Trainee.create({
         name,
         email,
         rg,
@@ -93,47 +91,53 @@ module.exports = {
         father_name,
         mother_name,
         have_special_needs,
-        create_at: new Date(Date.now()),
-        updated_at: new Date(Date.now()),
+        create_at: Date.now(),
+        updated_at: Date.now(),
       });
+      res.status(201).send({ message: "Usuario cadastrado .." , trainee});
     } catch (error) {
-      res.status(400).json({
-        error:
-          `Erro ao cadastrar estagiário : ${error.name}`  ,
-      });
-      return;
+      return res.status(400).json({ error: "Erro ao cadastrar estagiário" });
     }
-
-    res.status(201).json(trainee);
   },
   async update(req, res) {
-    const { id } = req.params;
-    const {
-      name,
-      email,
-      rg,
-      cpf,
-      primary_phone_contact,
-      secondary_phone_contact,
-      date_birth,
-      father_name,
-      mother_name,
-      have_special_needs,
-    } = req.body;
+    try {
+      const { id } = req.params;
+      const {
+        name,
+        email,
+        rg,
+        cpf,
+        primary_phone_contact,
+        secondary_phone_contact,
+        date_birth,
+        father_name,
+        mother_name,
+        have_special_needs,
+      } = req.body;
 
-    const trainee = await Trainee.update({
-      name,
-      email,
-      rg,
-      cpf,
-      primary_phone_contact,
-      secondary_phone_contact,
-      date_birth,
-      father_name,
-      mother_name,
-      have_special_needs,
-      updated_at: new Date(Date.now()),
-    });
-    res.json(trainee);
+      const trainee = await Trainee.update(
+        {
+          name,
+          email,
+          rg,
+          cpf,
+          primary_phone_contact,
+          secondary_phone_contact,
+          date_birth,
+          father_name,
+          mother_name,
+          have_special_needs,
+          updated_at: new Date(Date.now()),
+        },
+        {
+          where: {
+            id,
+          },
+        }
+      );
+      res.status(200).send({ message: "Usuario atualizado .." });
+    } catch (error) {
+      res.status(400).json({ error: "Erro ao atualizar estagiário" });
+    }
   },
 };

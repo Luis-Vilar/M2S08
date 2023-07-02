@@ -1,16 +1,17 @@
 const Companies = require("../models/companies");
 
-async function validateCnpj(cnpj) {
+async function validateCnpj(res, cnpj) {
   const company = await Companies.findOne({
     where: {
       cnpj,
     },
   });
-  const existe = company ? true : false;
-  return existe;
+  if (company) {
+    return res.status(400).json({ error: "CNPJ já cadastrado" });
+  }
 }
 
-function validateBody(body) {
+function validateBody(res, body) {
   const {
     cnpj,
     company_name,
@@ -39,9 +40,10 @@ function validateBody(body) {
     !rh_analyst_name ||
     !supervisor_name
   ) {
-    return false;
+    return res
+      .status(400)
+      .json({ error: "Dados Preencha todos os dados corretamente..." });
   }
-  return true;
 }
 module.exports = {
   async index(req, res) {
@@ -54,44 +56,37 @@ module.exports = {
     res.json(company);
   },
   async store(req, res) {
-    const validar = validateBody(req.body);
-    const existe = await validateCnpj(req.body.cnpj);
-    if (existe) {
-      return res.status(400).json({ error: "CNPJ já cadastrado" });
-    }
-    if (!validar) {
-      return res.status(400).json({ error: "Dados inválidos" });
-    } else {
-      const {
-        cnpj,
-        company_name,
-        contact,
-        cep,
-        address,
-        neighborhood,
-        city,
-        state,
-        number,
-        complement,
-        rh_analyst_name,
-        supervisor_name,
-      } = req.body;
-      const company = await Companies.create({
-        cnpj,
-        company_name,
-        contact,
-        cep,
-        address,
-        neighborhood,
-        city,
-        state,
-        number,
-        complement,
-        rh_analyst_name,
-        supervisor_name,
-      });
-      res.json(company);
-    }
+    validateBody(res, req.body);
+    validateCnpj(res, req.body.cnpj);
+    const {
+      cnpj,
+      company_name,
+      contact,
+      cep,
+      address,
+      neighborhood,
+      city,
+      state,
+      number,
+      complement,
+      rh_analyst_name,
+      supervisor_name,
+    } = req.body;
+    const company = await Companies.create({
+      cnpj,
+      company_name,
+      contact,
+      cep,
+      address,
+      neighborhood,
+      city,
+      state,
+      number,
+      complement,
+      rh_analyst_name,
+      supervisor_name,
+    });
+    res.json(company);
   },
   async update(req, res) {
     const { id } = req.params;
