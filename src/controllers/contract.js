@@ -119,20 +119,9 @@ module.exports = {
     res.json(contract);
   },
 
-  async update(req, res) {
+  async deactivate(req, res) {
     const { id } = req.params;
-    const {
-      trainee_id,
-      category_id,
-      company_id,
-      start_validity,
-      end_validity,
-      status,
-      remuneration,
-      extra,
-      created_at,
-      updated_at,
-    } = req.body;
+    const { status } = req.body;
 
     const validateContractStatus = await Contract.findOne({
       where: {
@@ -140,24 +129,13 @@ module.exports = {
       },
     });
     if (validateContractStatus.status === false && status === true) {
-      return res
-        .status(400)
-        .json({
-          error: "Não é possível ativar novamente  um contrato desativado",
-        });
+      return res.status(400).json({
+        error: "Não é possível ativar novamente  um contrato desativado",
+      });
     }
     const contract = await Contract.update(
       {
-        trainee_id,
-        category_id,
-        company_id,
-        start_validity,
-        end_validity,
         status,
-        remuneration,
-        extra,
-        created_at,
-        updated_at,
       },
       {
         where: {
@@ -165,7 +143,9 @@ module.exports = {
         },
       }
     );
-    res.json(contract);
+    res
+      .status(200)
+      .send({ message: `Contrato com  id : ${id} foi desativado` });
   },
 
   async del(req, res) {
