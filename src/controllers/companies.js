@@ -48,12 +48,12 @@ function validateBody(res, body) {
 module.exports = {
   async index(req, res) {
     const companies = await Companies.findAll();
-    res.json(companies);
+    res.status(200).send(companies);
   },
   async show(req, res) {
     const { id } = req.params;
     const company = await Companies.findByPk(id);
-    res.json(company);
+    res.status(200).send(company);
   },
   async store(req, res) {
     validateBody(res, req.body);
@@ -72,40 +72,8 @@ module.exports = {
       rh_analyst_name,
       supervisor_name,
     } = req.body;
-    const company = await Companies.create({
-      cnpj,
-      company_name,
-      contact,
-      cep,
-      address,
-      neighborhood,
-      city,
-      state,
-      number,
-      complement,
-      rh_analyst_name,
-      supervisor_name,
-    });
-    res.json(company);
-  },
-  async update(req, res) {
-    const { id } = req.params;
-    const {
-      cnpj,
-      company_name,
-      contact,
-      cep,
-      address,
-      neighborhood,
-      city,
-      state,
-      number,
-      complement,
-      rh_analyst_name,
-      supervisor_name,
-    } = req.body;
-    const company = await Companies.update(
-      {
+    try {
+      const company = await Companies.create({
         cnpj,
         company_name,
         contact,
@@ -118,13 +86,58 @@ module.exports = {
         complement,
         rh_analyst_name,
         supervisor_name,
-      },
-      {
-        where: {
-          id,
+      });
+      res
+        .status(201)
+        .send({ message: "Compania addicionada corretamente", company });
+    } catch (error) {
+      res.status(400).json({ error: "Erro ao cadastrar compania" });
+    }
+  },
+  async update(req, res) {
+    try {
+      const { id } = req.params;
+      const {
+        cnpj,
+        company_name,
+        contact,
+        cep,
+        address,
+        neighborhood,
+        city,
+        state,
+        number,
+        complement,
+        rh_analyst_name,
+        supervisor_name,
+      } = req.body;
+      const company = await Companies.update(
+        {
+          cnpj,
+          company_name,
+          contact,
+          cep,
+          address,
+          neighborhood,
+          city,
+          state,
+          number,
+          complement,
+          rh_analyst_name,
+          supervisor_name,
         },
-      }
-    );
-    res.json(company);
+        {
+          where: {
+            id,
+          },
+        }
+      );
+      res.status(200)({
+        message: "Companhia atualizada corretamente ...",
+        company,
+      });
+    } catch (error) {
+      res.status(400).json({ error: "Erro ao atualizar companhia" });
+    }
   },
 };

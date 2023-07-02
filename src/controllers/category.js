@@ -7,14 +7,20 @@ module.exports = {
     return res.json(categories);
   },
   async store(req, res) {
-    const { name, created_at } = req.body;
+    try {
+      const { name, created_at } = req.body;
 
-    const category = await Category.create({
-      name,
-      created_at,
-      updated_at: Date.now(),
-    });
+      const category = await Category.create({
+        name,
+        created_at,
+        updated_at: Date.now(),
+      });
 
-    return res.json(category);
+      return res
+        .status(201)
+        .send({ message: "Categoria adiccionada corretamente", category });
+    } catch (error) {
+      return res.status(400).json({ error: "Erro ao cadastrar categoria" });
+    }
   },
 };
