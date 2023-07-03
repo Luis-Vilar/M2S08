@@ -14,7 +14,6 @@ function validateBody(body, res) {
     have_special_needs,
   } = body;
 
-
   if (
     !name ||
     !email ||
@@ -62,7 +61,9 @@ module.exports = {
     res.json(trainee);
   },
   async store(req, res) {
-    validateBody(req.body, res);
+    const body = req.body;
+
+    validateBody(body, res);
 
     const {
       name,
@@ -77,9 +78,9 @@ module.exports = {
       have_special_needs,
     } = req.body;
 
-    try {
-      await validateCpfAndRg(cpf, rg, res);
+    await validateCpfAndRg(cpf, rg, res);
 
+    try {
       const trainee = await Trainee.create({
         name,
         email,
@@ -94,9 +95,11 @@ module.exports = {
         create_at: Date.now(),
         updated_at: Date.now(),
       });
-      res.status(201).send({ message: "Usuario cadastrado .." , trainee});
+      return res
+        .status(201)
+        .send({ message: "Usuario cadastrado ..", trainee });
     } catch (error) {
-      return res.status(400).json({ error: "Erro ao cadastrar estagiário" });
+      console.log(error);
     }
   },
   async update(req, res) {
